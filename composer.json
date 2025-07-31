@@ -3,7 +3,7 @@
     "description": "Automatic query caching for Laravel with intelligent invalidation",
     "type": "library",
     "license": "MIT",
-    "version:"1.0.1",
+    "version":"1.0.1",
     "authors": [
         {
             "name": "Varun Azad",
