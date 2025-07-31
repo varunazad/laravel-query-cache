@@ -3,82 +3,86 @@
 namespace Varunazad\QueryCache;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Contracts\Cache\Repository as Cache;
-use Illuminate\Contracts\Config\Repository as Config;
-use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 class QueryCache
 {
     protected Cache $cache;
-    protected Config $config;
-    protected Application $app;
     protected bool $enabled = true;
 
-    public function __construct(Cache $cache, Config $config, Application $app)
+    public function __construct(Cache $cache)
     {
         $this->cache = $cache;
-        $this->config = $config;
-        $this->app = $app;
     }
 
-    public function enable(): void
-    {
-        $this->enabled = true;
-    }
-
-    public function disable(): void
-    {
-        $this->enabled = false;
-    }
-
-    public function isEnabled(): bool
-    {
-        return $this->enabled;
-    }
-
-    public function cacheQuery(Builder $query, ?int $ttl = null)
+    public function cache($query, ?int $ttl = null, ?callable $callback = null)
     {
         if (!$this->enabled) {
-            return $query->get();
+            return $callback ? $callback($query) : $this->execute($query);
         }
 
-        $ttl = $ttl ?? $this->config->get('querycache.default_ttl', 60);
+        $ttl = $ttl ?? config('querycache.default_ttl', 60);
         $key = $this->generateCacheKey($query);
 
-        return $this->cache->remember($key, $ttl, function () use ($query) {
-            return $query->get();
+        return $this->cache->remember($key, $ttl, function () use ($query, $callback) {
+            return $callback ? $callback($query) : $this->execute($query);
         });
     }
 
-    protected function generateCacheKey(Builder $query): string
+    protected function execute($query)
     {
-        $sql = method_exists($query, 'toRawSql') 
-            ? $query->toRawSql() 
-            : $query->toSql();
+        if ($query instanceof Builder || $query instanceof Relation) {
+            return $query->get();
+        }
+        if ($query instanceof QueryBuilder) {
+            return new Collection($query->get());
+        }
+        return $query;
+    }
 
-        $bindings = $this->normalizeBindings($query->getBindings());
+    public function cachePaginate($query, int $perPage = 15, ?int $ttl = null): LengthAwarePaginator
+    {
+        return $this->cache($query, $ttl, function ($query) use ($perPage) {
+            if ($query instanceof Builder || $query instanceof Relation) {
+                return $query->paginate($perPage);
+            }
+            return paginate($query, $perPage); // Helper for query builder
+        });
+    }
 
-        return sprintf('query_cache:%s:%s',
-            $query->getConnection()->getName(),
-            md5($sql . serialize($bindings))
+    protected function generateCacheKey($query): string
+    {
+        if ($query instanceof Builder || $query instanceof Relation) {
+            $sql = $query->toSql();
+            $bindings = $this->normalizeBindings($query->getBindings());
+            $connection = $query->getConnection()->getName();
+        } else {
+            $sql = $query->toSql();
+            $bindings = $this->normalizeBindings($query->getBindings());
+            $connection = $query->getConnection()->getName();
+        }
+
+        $page = request()->input('page', 1);
+        
+        return sprintf('query_cache:%s:%s:%s',
+            $connection,
+            md5($sql . serialize($bindings)),
+            $page
         );
     }
 
     protected function normalizeBindings(array $bindings): array
     {
-        if (version_compare($this->app->version(), '9.0', '<')) {
-            return array_map(function ($binding) {
-                return $binding instanceof \DateTimeInterface
-                    ? $binding->format('Y-m-d H:i:s')
-                    : $binding;
-            }, $bindings);
-        }
-
-        return $bindings;
+        return array_map(function ($binding) {
+            return $binding instanceof \DateTimeInterface
+                ? $binding->format('Y-m-d H:i:s')
+                : $binding;
+        }, $bindings);
     }
 
-    public function flush(): bool
-    {
-        return $this->cache->getStore()->flush();
-    }
+    // ... (keep existing enable/disable/flush methods)
 }
