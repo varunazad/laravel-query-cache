@@ -1,17 +1,31 @@
 {
     "name": "varunazad/laravel-query-cache",
-    "description": "Automatic database query caching for Laravel",
+    "description": "Automatic query caching for Laravel with intelligent invalidation",
     "type": "library",
     "license": "MIT",
-    "authors": [{
-        "name": "Varun Azad",
-        "email": "varunindian10@gmail.com"
-    }],
+    "version:"1.0.1",
+    "authors": [
+        {
+            "name": "Varun Azad",
+            "email": "your@email.com",
+            "homepage": "https://github.com/varunazad"
+        }
+    ],
+    "keywords": [
+        "laravel",
+        "query cache",
+        "performance",
+        "eloquent"
+    ],
     "require": {
-        "php": "^7.3|^8.0",
+        "php": "^8.0",
         "illuminate/support": "^8.0|^9.0|^10.0",
         "illuminate/database": "^8.0|^9.0|^10.0",
         "illuminate/cache": "^8.0|^9.0|^10.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0",
+        "orchestra/testbench": "^6.0|^7.0|^8.0"
     },
     "autoload": {
         "psr-4": {
@@ -33,6 +47,14 @@
             }
         }
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
 }
