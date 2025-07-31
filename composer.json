@@ -1,0 +1,38 @@
+{
+    "name": "varunazad/laravel-query-cache",
+    "description": "Automatic database query caching for Laravel",
+    "type": "library",
+    "license": "MIT",
+    "authors": [{
+        "name": "Varun Azad",
+        "email": "varunindian10@gmail.com"
+    }],
+    "require": {
+        "php": "^7.3|^8.0",
+        "illuminate/support": "^8.0|^9.0|^10.0",
+        "illuminate/database": "^8.0|^9.0|^10.0",
+        "illuminate/cache": "^8.0|^9.0|^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Varunazad\\QueryCache\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Varunazad\\QueryCache\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Varunazad\\QueryCache\\QueryCacheServiceProvider"
+            ],
+            "aliases": {
+                "QueryCache": "Varunazad\\QueryCache\\Facades\\QueryCache"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

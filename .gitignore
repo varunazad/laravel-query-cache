@@ -1,0 +1,44 @@
+# Dependency directories
+/vendor/
+/node_modules/
+
+# Development files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-*
+.DS_Store
+
+# Build artifacts
+/build/
+/phar/
+
+# Composer files
+composer.lock
+composer.phar
+
+# Test/CI artifacts
+.phpunit.result.cache
+/clover.xml
+/coverage/
+*.cache
+.scannerwork/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local development files
+*.local.php
+*.local.yaml
+
+# IDE specific files
+*.phpstorm.meta.php
+_ide_helper.php
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
